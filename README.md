@@ -70,11 +70,11 @@ The Estimation component utilizes statistical and numerical techniques to derive
 - Molecular simulation tools like `OpenMM` or `MDTraj` for sampling.
   
 ### Installation
-Clone the repository and install the necessary dependencies:
+Clone the repository and install the necessary dependencies. Note that you need a working version of conda. 
 ```bash
 git clone https://github.com/ShashankSule/exploring_butane.git
 cd exploring_butane
-pip install -r requirements.txt
+conda env create mdenv -file openmm_env.yml
 ```
 
 ### Running the Project
