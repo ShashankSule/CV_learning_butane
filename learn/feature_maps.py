@@ -55,16 +55,16 @@ def dihedral_angle_torch(x):
 
 
 class RecenterBondLayer(nn.Module):
-    def __init__(self, batch_mode=True):
+    def __init__(self, atom_ind, batch_mode=True):
         super(RecenterBondLayer, self).__init__()
         self.batch_mode = batch_mode
-
+        self.ind = atom_ind 
     def recenter_bond_torch(self, x):
         x = x.reshape((4, 3))
         assert x.shape == (4, 3)
         
-        recentered_x = x - x[1, :]
-        theta = torch.atan2(recentered_x[2, 1], recentered_x[2, 0])
+        recentered_x = x - x[self.ind, :]
+        theta = torch.atan2(recentered_x[self.ind+1, 1], recentered_x[self.ind+1, 0])
         
         xy_rotated = torch.tensor([
             [torch.cos(-theta), -torch.sin(-theta), 0],
@@ -73,7 +73,7 @@ class RecenterBondLayer(nn.Module):
         ]) @ recentered_x.T
         
         xy_rotated = xy_rotated.T
-        phi = torch.atan2(xy_rotated[2, 2], xy_rotated[2, 0])
+        phi = torch.atan2(xy_rotated[self.ind+1, 2], xy_rotated[self.ind+1, 0])
         
         zx_rotated = torch.tensor([
             [torch.cos(-phi), 0, -torch.sin(-phi)],
@@ -88,8 +88,8 @@ class RecenterBondLayer(nn.Module):
     def recenter_bond_batch_torch(self, batch_x):
         batch_size = batch_x.shape[0]
         batch_x = batch_x.reshape((batch_size, 4, 3)) # comment this out if you don't need it
-        recentered_x = batch_x - batch_x[:, 1, :].unsqueeze(1)
-        theta = torch.atan2(recentered_x[:, 2, 1], recentered_x[:, 2, 0])
+        recentered_x = batch_x - batch_x[:, self.ind, :].unsqueeze(1)
+        theta = torch.atan2(recentered_x[:, self.ind+1, 1], recentered_x[:, self.ind+1, 0])
 
         cos_theta = torch.cos(-theta)
         sin_theta = torch.sin(-theta)
@@ -101,7 +101,7 @@ class RecenterBondLayer(nn.Module):
 
         xy_rotated = torch.matmul(xy_rotation_matrix, recentered_x.transpose(1, 2)).transpose(1, 2)
 
-        phi = torch.atan2(xy_rotated[:, 2, 2], xy_rotated[:, 2, 0])
+        phi = torch.atan2(xy_rotated[:, self.ind+1, 2], xy_rotated[:, self.ind+1, 0])
         cos_phi = torch.cos(-phi)
         sin_phi = torch.sin(-phi)
         zx_rotation_matrix = torch.stack([
