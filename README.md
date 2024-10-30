@@ -13,7 +13,7 @@ The primary sampling method is implemented through a Jupyter notebook: [`butane_
 ### Free Energy Landscape
 We visualize the free energy landscape as a function of the order parameter `(cos(θ), sin(θ))`, where θ is the dihedral angle of the butane molecule. This plot helps us understand the energetic preferences of the molecule's configurations:
 
-![Free Energy Landscape](https://github.com/ShashankSule/exploring_butane/blob/main/figures/free_energy_landscape.png)
+![Free Energy Landscape](https://github.com/ShashankSule/exploring_butane/blob/main/figures/free_energy_plot.png)
 
 ## 2. Learning
 
@@ -61,7 +61,7 @@ The Estimation component utilizes statistical and numerical techniques to derive
 
 5. **Minimum Energy Paths**: Calculated between significant configurations such as the **gauche-60**, **gauche-300** and **anti** configurations to identify the most probable transition paths. We compute the **gauche-60** --> **anti** and **anti** --> **gauche-300** paths, adjoin the two, and reparameterized the adjoined path to unit speed.
 
-    ![Minimum Energy Path Plot](https://github.com/ShashankSule/exploring_butane/blob/main/figures/minimum_energy_path_plot.png)
+    ![Minimum Energy Path Plot](https://github.com/ShashankSule/exploring_butane/blob/main/figures/MEP.png)
 
 ## Getting Started
 
