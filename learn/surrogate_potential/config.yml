@@ -1,0 +1,39 @@
+# Configuration for training the surrogate potential model
+training_params:
+  device: "cpu" # "cuda:0" or "cpu"
+  batch_size: 512
+  num_epochs: 100
+  lr: 0.0001
+  
+  # Loss weights
+  data_weight: 1.0
+  eikonal_weight: 10.0
+  gradient_matching_weight: 5.0
+  
+  # Gradient matching loss configuration
+  gradient_loss_type: "mse"  # "cosine", "mse", "combined", "directional", "consistency"
+  normalize_gradients: true
+
+paths:
+  data_path: '../data/butane_nonaligned.npz'
+  dnet_model_path: '../manifold_learning/outputs/bondalign_23/model_encoder_DNet_Laplacian_8oct2024_carbons'
+  save_path: 'outputs/bondalign_23/surrogate_potential_model.pth'
+
+model_params:
+  # For the D-Net model to load state_dict
+  dnet:
+    input_dim: 12
+    encoder_dim: 4
+  # For the surrogate potential model
+  potential:
+    output_dim: 1
+
+# Normal computation parameters
+normal_params:
+  compute_normals: true
+  # For 2D manifolds
+  k_neighbors: 10
+  # For 3D manifolds  
+  radius: 0.1
+  max_neighbors: 1000
+  orient_to_center: true 

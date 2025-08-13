@@ -1,0 +1,24 @@
+Notes: Simple dnet with reconstruction and dnet loss, all atom data
+activation: Tanh
+batch_size: 10000
+datapath: dmaps/OrthogonalChangeOfBasisBatched_N_10000_epsilon_5.6.npz
+encoder_dim: 2
+feature_map: OrthogonalChangeOfBasisBatched
+gamma: 0.8
+hidden_dims:
+- 32
+- 32
+- 32
+- 32
+input_dim: 42
+learning_rate: 0.01
+loss_weights:
+  conformal_loss: 0.0
+  dnet_loss: 1.0
+  laplacian_loss: 0.0
+  recon_loss: 0.0
+notes: LAPCAE with laplacian loss and conformal loss for first two coords
+num_epochs: 1000
+scheduler: StepLR
+step_size: 200
+weight_decay: 1.0e-05

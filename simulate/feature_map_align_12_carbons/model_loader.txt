@@ -1,0 +1,92 @@
+## Dnet
+
+layer = RecenterBondLayer(batch_mode=True)  # Enable batch mode
+# layer = OrthogonalChangeOfBasisBatched()
+# device = 'cpu'
+# 1. diffusion net 
+class Encoder(nn.Module):
+    def __init__(self, activation, input_dim, hidden1_dim, hidden2_dim, hidden3_dim, hidden4_dim, encoder_dim):
+        super(Encoder, self).__init__()
+        
+        # Defining the layers of the neural network
+        # self.featurizer = feature_map
+        self.activation = activation
+        self.hidden1 = nn.Linear(input_dim, hidden1_dim)
+        self.hidden2 = nn.Linear(hidden1_dim, hidden2_dim)
+        self.hidden3 = nn.Linear(hidden2_dim, hidden3_dim)
+        self.hidden4 = nn.Linear(hidden3_dim, hidden4_dim)
+        self.bottleneck = nn.Linear(hidden4_dim, encoder_dim)
+
+        # Collecting layers for convenience
+        self.encoder = nn.Sequential(self.hidden1, self.activation, \
+                                     self.hidden2, self.activation, \
+                                        self.hidden3, self.activation, \
+                                            self.hidden4, self.activation, \
+                                                self.bottleneck, self.activation)
+
+    
+    def encode(self, x):
+        # y = self.featurizer(x)
+        y = self.encoder(x)
+        return self.encoder(x)
+    
+    # Required for any subclass of nn.module: defines how data passes through the `computational graph'
+    def forward(self, x):
+        # x = self.featurizer(x)
+        return self.encode(x)
+
+# this defines the structure of the model
+
+activation = nn.Tanh() 
+# input_dim = 42
+input_dim = 12
+hidden1_dim = 32
+hidden2_dim = 32
+hidden3_dim = 32
+hidden4_dim = 32
+encoder_dim = 4
+output_dim = 42
+
+## Potential
+
+class periodic_activation(nn.Module):
+    def __init__(self):
+        super(periodic_activation, self).__init__()
+    def forward(self,x): 
+        return x + torch.sin(x)**2
+
+class PsiNetwork(nn.Module): # learns the potential function V_1 given its zero level set 
+    def __init__(self, activation, input_dim, hidden1_dim, hidden2_dim, hidden3_dim, hidden4_dim, encoder_dim):
+        super(PsiNetwork, self).__init__()
+        
+        # Defining the layers of the neural network
+        self.activation = activation
+        self.hidden1 = nn.Linear(input_dim, hidden1_dim)
+        self.hidden2 = nn.Linear(hidden1_dim, hidden2_dim)
+        self.hidden3 = nn.Linear(hidden2_dim, hidden3_dim)
+        self.hidden4 = nn.Linear(hidden3_dim, hidden4_dim)
+        self.bottleneck = nn.Linear(hidden4_dim, encoder_dim)
+
+        # Collecting layers for convenience as encoder and decoder
+        self.Psif = nn.Sequential(self.hidden1, self.activation, self.hidden2, self.activation, \
+                                  self.hidden3, self.activation, self.hidden4, self.activation, \
+                                  self.bottleneck)
+        # the sigmoid is to make sure the values are between 0 and 1.
+    
+    def Psi(self, x):
+        return self.Psif(x)
+    
+    def forward(self, x):
+        return self.Psi(x)
+    
+activation_psi = periodic_activation()
+input_dim_psi = 3
+hidden1_dim_psi = 30
+hidden2_dim_psi = 45
+hidden3_dim_psi = 32
+hidden4_dim_psi = 32
+potential_dim_psi = 1
+
+device = 'cpu' 
+model_Psi = PsiNetwork(activation_psi, input_dim_psi, hidden1_dim_psi, hidden2_dim_psi, \
+                       hidden3_dim, hidden4_dim, potential_dim_psi).to(device)

@@ -1,0 +1,7 @@
+parameters:
+  feature_map: BondAlign(2,3)
+  n_evecs: 4
+
+subsampling_rate:
+  - 10
+

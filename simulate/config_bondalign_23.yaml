@@ -1,0 +1,50 @@
+# Free Energy Calculation Configuration - Bond Align (2,3) CVs
+# Collective Variable Configuration
+cv_type: "bondalign"
+
+# CV-specific parameters
+cv_params:
+  # For bondalign - specify which CVs to use (from carbon alignment model)
+  use_cv_1: true
+  use_cv_2: true
+  
+  # CV value ranges (from NNcv notebook)
+  cv_1_range: [-1.2, 1.2]   # First learned CV
+  cv_2_range: [-2.2, 2.2]   # Second learned CV
+
+# Metadynamics parameters
+metadynamics:
+  bias_width: 0.08
+  bias_factor: 10
+  height: 0.5  # kJ/mol (higher for neural network CVs)
+  frequency: 10  # steps between bias addition (1E1 from notebook)
+  grid_width: 100
+
+# Simulation parameters
+simulation:
+  temperature: 300  # Kelvin
+  friction_coeff: 10  # ps^-1
+  timestep: 2  # femtoseconds
+  total_steps: 1000000
+  platform: "CUDA"  # CUDA recommended for neural network CVs
+
+# System parameters
+system:
+  psf_file: "../butane/data/butane.psf"
+  pdb_file: "../butane/data/butane.pdb"
+  ff_rtf_file: "../butane/data/top_all35_ethers.rtf"
+  ff_prm_file: "../butane/data/par_all35_ethers.prm"
+
+# Output parameters
+output:
+  base_dir: "../butane/output/traj_current/"
+  state_file: "state_metad.txt"
+  trajectory_file: "traj_metad.dcd"
+  free_energy_file: "free_energy.npz"
+  cvs_file: "my_CVs.npz"
+  params_file: "system_params.yml"
+  report_frequency: 10
+  console_report_frequency: 100000
+
+# Device configuration
+device: "cuda:0"

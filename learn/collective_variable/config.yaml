@@ -1,0 +1,112 @@
+# Configuration for Collective Variable Learning
+
+# Data parameters
+data:
+  data_path: '../data/butane_nonaligned.npz'  # Path to data file
+  data_key: 'data'  # Key for carbon coordinates in npz file
+  batch_size: 64
+  num_workers: 0  # Set to 0 to avoid multiprocessing issues during debugging
+  train_test_split: 0.8
+  hessian_component_idx: 2  # Which column of hessian to match (0-indexed) - use 1 for second CV
+  device: 'cuda'  # or 'cpu'
+
+# Model architecture parameters
+model:
+  input_dim: 3  # Manifold dimension after diffusion net mapping (3D embedding)
+  cv_output_dim: 1  # Number of collective variables to learn
+  use_decoder: true
+  decoder_hidden_dims: [32, 64, 32]
+  
+  # Feature map configuration (applied to raw coordinates before diffusion net)
+  feature_map:
+    type: 'RecenterBondLayer'
+    atom_indices: [1, 2]  # Bond indices for recentering atoms 1,2 in carbon-only coordinates (0-indexed)
+    
+  # Diffusion net configuration
+  diffusion_net:
+    model_path: '../manifold_learning/outputs/bondalign_23/LAPCAE'
+    architecture: 'standard_4_layer_dnet_tanh_encoder_3D'
+    input_dim: 12  # Raw coordinate dimension (4 carbons × 3 coords)
+    encoder_dim: 4  # Internal encoder dimension
+  
+  # CV network architecture (matches surrogate potential)
+  cv_network:
+    hidden1_dim: 30
+    hidden2_dim: 45
+    hidden3_dim: 32
+    hidden4_dim: 32
+    activation: 'periodic'  # or 'relu', 'gelu', etc.
+
+# Loss function parameters
+loss:
+  orthogonality_weight: 1.0      # Weight for orthogonality loss
+  matching_weight: 1.0           # Weight for matching loss (align with hessian column)
+  eikonal_weight: 0.0            # Weight for eikonal loss (unit norm gradients)
+  reconstruction_weight: 0.1     # Weight for reconstruction loss
+  
+  normalize_gradients: true      # Whether to normalize gradients in loss computation
+  matching_loss_type: 'cosine'     # 'mse' or 'cosine'
+  reconstruction_loss_type: 'mse'  # 'mse', 'l1', or 'huber'
+
+# Training parameters
+training:
+  epochs: 1
+  learning_rate: 0.01
+  weight_decay: 0.0001
+  optimizer: 'adam'  # 'adam', 'sgd', 'adamw'
+  
+  # Learning rate scheduler
+  scheduler:
+    type: 'step'  # 'step', 'cosine', 'plateau', or null
+    step_size: 100
+    gamma: 0.7
+    patience: 20  # for plateau scheduler
+  
+  # Early stopping
+  early_stopping:
+    enabled: true
+    patience: 50
+    min_delta: 0.000001
+  
+  # Gradient clipping
+  grad_clip: 1.0  # null to disable
+
+# Logging and saving
+logging:
+  log_interval: 10  # Print loss every N batches
+  save_interval: 50  # Save model every N epochs
+  log_dir: 'logs'
+  checkpoint_dir: 'checkpoints'
+  
+  # Wandb logging (optional)
+  use_wandb: false
+  wandb_project: 'cv_learning'
+  wandb_entity: null
+
+# Model paths (for loading pre-trained models)
+model_paths:
+  diffusion_net: null  # Path to pre-trained diffusion net
+  surrogate_potential: null  # Path to pre-trained surrogate potential
+  feature_map: null  # Path to feature map (if applicable)
+
+# Validation and testing
+validation:
+  enabled: false
+  val_interval: 10  # Validate every N epochs
+  val_metrics: ['orthogonality', 'matching', 'reconstruction']
+
+# Experimental settings
+experiment:
+  name: 'cv_learning_experiment'
+  description: 'Learning collective variables orthogonal to residence manifold'
+  seed: 42
+  
+  # Multiple CV learning
+  multi_cv:
+    enabled: false
+    num_cvs: 2
+    shared_layers: true
+    
+  # Advanced features
+  use_mixed_precision: false
+  compile_model: false  # PyTorch 2.0 compile 
