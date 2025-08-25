@@ -34,7 +34,7 @@ The main learning algorithm is broken down into three sequential steps:
 
 #### **Step 1: Manifold Learning** (`learn/manifold_learning/`)
 
-a. **Feature Map Selection**: Use [`butane_ies.py`](learn/manifold_learning/butane_ies.py) to pick optimal dimensions or feature map representations through invariant embedding selection (IES). Core IES algorithms are in [`src/ies/`](src/ies/) (forked from [ic-pml repository](https://github.com/he-jesse/ic-pml)).
+a. **Feature Map Selection**: Use [`butane_ies.py`](learn/manifold_learning/butane_ies.py) to pick optimal dimensions or feature map representations through independent eigencoordinate selection (IES). Core IES algorithms are in [`src/ies/`](src/ies/) (forked from [ic-pml repository](https://github.com/he-jesse/ic-pml)).
 
 b. **Diffusion Map Construction**: Once the feature map is selected, generate a diffusion map using [`construct_dmap.py`](learn/manifold_learning/construct_dmap.py) with configuration from [`config_dmap.yml`](learn/manifold_learning/config_dmap.yml). Results are stored in [`dmaps/`](learn/manifold_learning/dmaps/) directory.
 
