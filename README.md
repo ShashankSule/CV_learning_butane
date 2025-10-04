@@ -10,7 +10,7 @@ The repository is organized into three main modules: **Learn**, **Simulate**, an
 
 ## Repository Structure
 
-### 📚 **Learn Module** (`learn/`)
+### **Learn Module** (`learn/`)
 
 The Learn module is the **main module for learning the algorithm** and contains all machine learning components for discovering collective variables through various manifold learning techniques. 
 
@@ -77,7 +77,7 @@ Additional components:
 - **Generates Figure 10** from the paper (LAPCAE visualization)
 
 
-### 🎯 **Simulate Module** (`simulate/`)
+### **Simulate Module** (`simulate/`)
 
 The Simulate module handles molecular dynamics simulations and free energy calculations.
 
@@ -105,7 +105,7 @@ The Simulate module handles molecular dynamics simulations and free energy calcu
   - [`process_CV.ipynb`](simulate/feature_map_align_12_carbons/process_CV.ipynb) - Main CV processing and visualization
   - [`process_CVs.ipynb`](simulate/feature_map_plane_align/process_CVs.ipynb) - Additional CV analysis
 
-### 📊 **Estimate Module** (`estimate/`)
+### **Estimate Module** (`estimate/`)
 
 The Estimate module focuses on computing transition rates and validating collective variables.
 
