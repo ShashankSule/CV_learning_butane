@@ -648,3 +648,62 @@ class NeumannMap(DiffusionMap):
         self.L = generator
         
         return self 
+
+def find_net(pointcloud, delta, seed=41231):
+    """
+    Find a net (covering subset) of points from a point cloud using O(N) algorithm.
+    
+    A net is a subset of points such that every point in the original dataset
+    lies within distance delta of at least one point in the net.
+    
+    Uses a simple greedy algorithm that processes points in order.
+    
+    Parameters
+    ----------
+    pointcloud : array-like, shape (N, d)
+        Input point cloud with N points in d-dimensional space
+    delta : float
+        Radius of the covering balls
+    seed : int or None
+        Random seed for shuffling the processing order (reproducibility)
+        
+    Returns
+    -------
+    net_points : array, shape (M, d)
+        Subset of points forming the net
+    net_membership : array, shape (N,)
+        Boolean array indicating which original points are in the net
+    """
+    from sklearn.neighbors import NearestNeighbors
+    
+    pointcloud = np.asarray(pointcloud)
+    N, d = pointcloud.shape
+    
+    # Initialize
+    covered = np.zeros(N, dtype=bool)  # Track which points are covered
+    net_indices = []  # Indices of points in the net
+    net_membership = np.zeros(N, dtype=bool)  # Boolean array for net membership
+    
+    # Use NearestNeighbors for efficient radius queries
+    nn = NearestNeighbors(radius=delta, algorithm='ball_tree')
+    nn.fit(pointcloud)
+    
+    # Simple greedy algorithm: process points in order
+    indices = np.arange(N)
+    rng = np.random.default_rng(seed)
+    rng.shuffle(indices)
+    for i in indices:
+        if not covered[i]:  # If this point is not covered yet
+            # Add it to the net
+            net_indices.append(i)
+            net_membership[i] = True
+            
+            # Find all points within delta of this net point and mark them as covered
+            neighbor_indices = nn.radius_neighbors([pointcloud[i]], return_distance=False)[0]
+            covered[neighbor_indices] = True
+    
+    # Extract the net points
+    net_points = pointcloud[net_indices]
+    
+    return net_points, net_membership
+
