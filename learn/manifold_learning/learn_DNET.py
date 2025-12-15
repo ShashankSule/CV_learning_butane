@@ -10,12 +10,17 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 import torch
+import sys
+import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../src')))
 from torch.utils.data import DataLoader
 from torch import nn
 from _dnet_architectures import *
 from _dnet_datasets import *
 from _dnet_loss import *
 import yaml
+from _compute_normals import compute_pointcloud_normals
+from 
 
 verbose = True
 # Get training configs
@@ -34,6 +39,8 @@ feature_data, diff_map, laplacian, eigenvalues, reference_CV = data_dic['feature
                                                                data_dic['laplacian'], \
                                                                data_dic['eigvals'], \
                                                                data_dic['reference_CV']
+
+
 # training_configs['input_dim'] = feature_data.shape[1]
 # training_configs['encoder_dim'] = diff_map.shape[1]
 

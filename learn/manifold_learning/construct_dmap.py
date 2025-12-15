@@ -77,9 +77,9 @@ if __name__ == "__main__":
     feature_map_name = config["parameters"]["feature_map"]
     subsamping_rate= config["subsampling_rate"][0]
     n_evecs = config["parameters"]["n_evecs"]
-
+    savestring = config["savestring"]
     # Read data
-    data_class = ground_data('ground_data/butane_nonaligned.npz', \
+    data_class = ground_data('../data/butane_nonaligned.npz', \
                         subsamping_rate, reference_CV = 'dihedrals')
     data, ref_vec = data_class.return_data()
     batch_size, N = data.shape[0], data.shape[1] // 3  # Number of atoms
@@ -89,20 +89,22 @@ if __name__ == "__main__":
     if feature_map is None:
         print("Invalid feature map. Exiting.")
         exit(1)
-    epsilon = process_epsilon(feature_map_name)
-    # epsilon = 50.0
+    if config["parameters"]["epsilon"] is not None:
+        epsilon = config["parameters"]["epsilon"]
+    else:
+        epsilon = process_epsilon(feature_map_name)
 
     # Compute diffusion map 
     feature_data = feature_map(torch.tensor(data.reshape(batch_size, 3 * N), \
                                             dtype=torch.float32))
     
-    selected_atoms = [3, 6, 9, 13]  # Example: select the carbons
-    carbons_matrix = torch.zeros(len(selected_atoms), N)
-    for i, atom in enumerate(selected_atoms):
-        carbons_matrix[i, atom] = 1
+    # selected_atoms = [3, 6, 9, 13]  # Example: select the carbons
+    # carbons_matrix = torch.zeros(len(selected_atoms), N)
+    # for i, atom in enumerate(selected_atoms):
+    #     carbons_matrix[i, atom] = 1
     
-    feature_data = feature_data.reshape((batch_size, N, 3))
-    feature_data = feature_data[:, selected_atoms, :].reshape(batch_size, -1)
+    # feature_data = feature_data.reshape((batch_size, N, 3))
+    # feature_data = feature_data[:, selected_atoms, :].reshape(batch_size, -1)
 
     dmap = diffusion_map.DiffusionMap(alpha=1.0, epsilon=epsilon, \
                                       num_evecs=n_evecs)
@@ -125,7 +127,7 @@ if __name__ == "__main__":
     # save data
     filename = 'dmaps/' + feature_map_name + \
         '_N_' + f'{batch_size}' + \
-        '_epsilon_' + f'{epsilon:.1f}' + '_carbons' + '.npz'
+        '_epsilon_' + f'{epsilon:.1f}' + '.npz'
     L_dense = L.toarray()
     np.savez(filename, feature_data=feature_data.detach().numpy(), \
             laplacian=L_dense,\

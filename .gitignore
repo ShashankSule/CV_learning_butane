@@ -1,0 +1,31 @@
+# Ignore .npz files in dmaps directories
+**/dmaps/*.npz
+
+# Python cache files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# MacOS files
+.DS_Store
+.DS_Store?
+
+# IDE files
+.vscode/
+.idea/
+
+# Environment files
+.env
+.venv/
+env/
+venv/
+
+# Plots and figures (optional - uncomment if you want to ignore generated plots)
+# *.png
+# *.jpg
+# *.pdf

@@ -1,7 +1,10 @@
 parameters:
-  feature_map: BondAlign(2,3)
-  n_evecs: 4
+  feature_map: OrthogonalChangeOfBasisBatched
+  n_evecs: 2
+  epsilon: 5.6
 
 subsampling_rate:
   - 10
+
+savestring: ''
 
