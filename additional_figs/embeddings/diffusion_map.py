@@ -651,7 +651,7 @@ class NeumannMap(DiffusionMap):
 
 def find_net(pointcloud, delta, seed=41231):
     """
-    Find a net (covering subset) of points from a point cloud using O(N) algorithm.
+    Find a net (covering subset) of points from a point cloud.
     
     A net is a subset of points such that every point in the original dataset
     lies within distance delta of at least one point in the net.
