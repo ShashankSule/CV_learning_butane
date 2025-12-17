@@ -311,11 +311,11 @@ class ChebyshevCommittorSolver:
         # Build differential operator
         D1 = self.kbT * Ms_mat * (D @ D)
         D2 = self.kbT * Ms_grad_mat * D - mean_force_mat * Ms_mat * D
-        D3 = D1 + D2
+        self.D3 = D1 + D2
         
         rhs = -0.5 * (self.kbT * Ms_grad_interior - mean_force_interior * Ms_interior)
         
-        return D3, rhs
+        return self.D3, rhs
     
     def solve_bvp(self):
         """Solve the boundary value problem for committor."""
