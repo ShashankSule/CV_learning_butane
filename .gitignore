@@ -25,6 +25,11 @@ __pycache__/
 env/
 venv/
 
+# the dnets and dmaps folder
+**/dmaps/
+**/dnets/
+**/align_experiment_dnet_autoencoder/
+
 # Plots and figures (optional - uncomment if you want to ignore generated plots)
 # *.png
 # *.jpg

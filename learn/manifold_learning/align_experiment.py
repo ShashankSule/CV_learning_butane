@@ -1,4 +1,5 @@
 # All imports
+import uuid
 import torch
 import numpy as np
 import matplotlib.pyplot as plt
@@ -43,11 +44,13 @@ normals = torch.Tensor(normals).to(device)
 # set up the dataloader
 dnet_dataset = DnetData(featurized_data=feature_data, diff_map=diff_map, laplacian=laplacian, eigvals=eigvals)
 dnet_data_loader = dnet_dataloader(dnet_dataset, batch_size=training_configs['batch_size'])
-
+breakpoint()
 # now set up the architecture
-dnet_encoder = standard_4_layer_dnet_tanh_encoder(input_dim=training_configs['input_dim'], encoder_dim=training_configs['encoder_dim'])
-dnet_decoder = standard_4_layer_dnet_tanh_decoder(input_dim=training_configs['input_dim'], encoder_dim=training_configs['encoder_dim'])
-
+dnet_encoder = standard_4_layer_dnet_tanh_encoder(input_dim=training_configs['input_dim'], encoder_dim=training_configs['encoder_dim']).to(device)
+dnet_decoder = standard_4_layer_dnet_tanh_decoder(input_dim=training_configs['input_dim'], encoder_dim=training_configs['encoder_dim']).to(device)
+init_sum_enc = sum([torch.sum(p).item() for p in dnet_encoder.parameters() if p.requires_grad])
+init_sum_dec = sum([torch.sum(p).item() for p in dnet_decoder.parameters() if p.requires_grad])
+breakpoint()
 # get optimizer 
 optimizers = {'encoder': torch.optim.Adam(dnet_encoder.parameters(), lr=training_configs['learning_rate'], weight_decay=training_configs['weight_decay'], betas=(0.9, 0.9)),
               'decoder': torch.optim.Adam(dnet_decoder.parameters(), lr=training_configs['learning_rate'], weight_decay=training_configs['weight_decay'], betas=(0.9, 0.9))}
@@ -56,12 +59,14 @@ schedulers = {'encoder': torch.optim.lr_scheduler.StepLR(optimizers['encoder'], 
               'decoder': torch.optim.lr_scheduler.StepLR(optimizers['decoder'], step_size=training_configs['step_size'], gamma=training_configs['gamma'])}
 
 # get the losses 
+breakpoint()
 matching_loss_fn = MatchingLoss()
 laplacian_loss_fn = LaplacianLoss()
 def orthogonality_loss(normals, outputs): 
     loss = torch.mean(torch.abs(torch.sum(normals * outputs, dim=-1))**2)
     return loss
 
+breakpoint()
 # set up the training loop
 # define training step
 def train_step(model_encoder, model_decoder, optimizers, loss_wts, feature_batch, diff_map_batch, laplacian_batch, eigvals_batch, normals_batch):
@@ -83,7 +88,7 @@ def train_step(model_encoder, model_decoder, optimizers, loss_wts, feature_batch
     reconstructions = model_decoder(outputs.float())
 
     # get the losses
-    matching_loss = matching_loss_fn(reconstructions, feature_batch)
+    matching_loss = matching_loss_fn(outputs, diff_map_batch)
     laplacian_loss = laplacian_loss_fn(laplacian_batch, eigvals_batch, outputs)
     
     cvs = torch.arctan2(outputs[...,1], outputs[...,0])
@@ -103,17 +108,20 @@ def train_step(model_encoder, model_decoder, optimizers, loss_wts, feature_batch
     optimizers['encoder'].step()
     optimizers['decoder'].step()
 
-    return loss, matching_loss, laplacian_loss, orthogonality_loss_value
+    return loss, matching_loss, laplacian_loss, reconstruction_loss, orthogonality_loss_value
 
 def train(model_encoder, model_decoder, training_configs, data_loader, optimizers, schedulers, num_epochs):
     loss_curve = []
     for epoch in range(num_epochs):
         for idx, (indices, feature_batch, diff_map_batch, laplacian_batch, eigvals_batch) in enumerate(data_loader):
             normals_batch = normals[indices]
-            loss, matching_loss, laplacian_loss, orthogonality_loss = train_step(model_encoder, model_decoder, \
+            loss, matching_loss, laplacian_loss, reconstruction_loss, orthogonality_loss = train_step(model_encoder, model_decoder, \
                 optimizers, training_configs['loss_weights'], \
                     feature_batch, diff_map_batch, laplacian_batch, eigvals_batch, normals_batch)
-            loss_curve.append({'loss': loss.item(), 'matching_loss': matching_loss.item(), 'laplacian_loss': laplacian_loss.item(), 'orthogonality_loss': orthogonality_loss.item()})
+            loss_curve.append({'loss': loss.item(), 'matching_loss': matching_loss.item(), \
+                               'laplacian_loss': laplacian_loss.item(), \
+                                'reconstruction_loss': reconstruction_loss.item(), \
+                                'orthogonality_loss': orthogonality_loss.item()})
             if idx % 100 == 0:
                 print(f'Epoch [{epoch+1}/{num_epochs}], Step [{idx+1}/{len(data_loader)}], Loss: {loss.item():.4f}')
         # Update the learning rate
@@ -122,19 +130,39 @@ def train(model_encoder, model_decoder, training_configs, data_loader, optimizer
     return model_encoder, model_decoder, loss_curve
 
 # train the model
+breakpoint()
 training = True
 if training:
-    model_encoder_reg, model_decoder_reg, loss_curve = train(dnet_encoder, dnet_decoder, training_configs, dnet_data_loader, optimizers, schedulers, training_configs['num_epochs'])
+    dnet_encoder, dnet_decoder, loss_curve = train(dnet_encoder, dnet_decoder, \
+                                                   training_configs, dnet_data_loader, optimizers, schedulers,\
+                                                   training_configs['num_epochs'])
 
+breakpoint()
+final_sum_enc = sum([torch.sum(p).item() for p in dnet_encoder.parameters() if p.requires_grad])
+final_sum_dec = sum([torch.sum(p).item() for p in dnet_decoder.parameters() if p.requires_grad])
+print(f"Sum of encoder parameters before and after training: {init_sum_enc}, {final_sum_enc}")
+print(f"Sum of decoder parameters before and after training: {init_sum_dec}, {final_sum_dec}")
 
-# visualize the loss curve 
+breakpoint()
+# generate random key and save loss data
+import uuid
+key = uuid.uuid4().hex
+filename = f'loss_curve_{key}.npy'
+np.save(filename, np.array(loss_curve))
+
+# save the model
+training_configs['loss_curve_location'] = filename
+save_autoencoder(dnet_encoder, dnet_decoder, training_configs, 'align_experiment_dnet_autoencoder')
+
+# 
+# # visualize the loss curve 
 plt.figure()
 plt.plot([item['loss'] for item in loss_curve], label='Total Loss', c='black', linewidth=2)
 plt.plot([item['matching_loss'] for item in loss_curve], label='Matching Loss', c='red', linewidth=2)
 plt.plot([item['orthogonality_loss'] for item in loss_curve], label='Orthogonality Loss', c='green', linewidth=2)
 plt.xlabel('Training Step', fontsize=14)
 plt.ylabel('Loss', fontsize=14)
-plt.ylim((0,1.0))
+# plt.ylim((0,1.0))
 plt.legend()
 plt.savefig('loss_curve.png')
 plt.close()
@@ -156,4 +184,6 @@ plt.xlabel('x', fontsize=14)
 plt.ylabel('y', fontsize=14)
 plt.title('CV Gradients', fontsize=14)
 plt.savefig('cv_gradients.png')
+plt.close()
 # breakpoint()
+
