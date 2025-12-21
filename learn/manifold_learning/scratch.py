@@ -36,9 +36,27 @@ diff_map = dmap_data['diff_map']
 reference_CV = dmap_data['reference_CV']
 laplacian = dmap_data['laplacian']
 eigvals = dmap_data['eigvals']
-# normals, _ = compute_pointcloud_normals(diff_map, method='2d', k_neighbors=100)
-# normals = normals / np.linalg.norm(normals, axis=1, keepdims=True)
-# normals = torch.Tensor(normals).to(device)
+
+breakpoint()
+# Compute point cloud normals
+normals, _ = compute_pointcloud_normals(diff_map, method='2d', k_neighbors=100)
+# Normalize to unit length
+normals = normals / np.linalg.norm(normals, axis=1, keepdims=True)
+
+# Plot the pointcloud with normals
+plt.figure(figsize=(10, 8))
+# Plot faintly colored 2D pointcloud
+plt.scatter(diff_map[:, 0], diff_map[:, 1], c=reference_CV, cmap='hsv', alpha=0.3, s=1.0)
+# Plot every 100th normal vector
+plt.quiver(diff_map[::100, 0], diff_map[::100, 1], 
+           normals[::100, 0], normals[::100, 1],
+           scale=1.0, scale_units='xy', width=0.003, color='black', alpha=0.6)
+plt.xlabel('psi_1', fontsize=14)
+plt.ylabel('psi_2', fontsize=14)
+plt.title('Point Cloud with Normals', fontsize=14)
+plt.savefig('pointcloudnormals.png', dpi=150, bbox_inches='tight')
+plt.close()
+
 breakpoint()
 # load the autoencoder
 # now set up the architecture
