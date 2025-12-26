@@ -230,3 +230,35 @@ class featurizer_carbons(nn.Module):
         carbons = torch.index_select(aligned_config, 1, self.carbon_indices.to(x.device))
         
         return carbons.flatten(start_dim=1)
+    
+class PlaneAlign(nn.Module):
+    def __init__(self, atoms=[6,9,13]):
+        super(PlaneAlign, self).__init__()
+        self.atoms = atoms
+
+    def forward(self, x):
+        # check if dimensions are batched: 
+        batch_mode = True if x.dim() == 2 else False
+        if not batch_mode:
+            x = x.unsqueeze(0)  # add batch dimension if not present
+        batch_size = x.shape[0]
+        num_atoms = x.shape[1] // 3
+        x = x.view(batch_size, num_atoms, 3)
+        x = x - x[:, self.atoms[0], :].unsqueeze(1)
+        p1 = x[:, self.atoms[1], :]
+        p2 = x[:, self.atoms[0], :]
+        p3 = x[:, self.atoms[2], :]
+        v1 = p2 - p1
+        v2 = p3 - p1
+        normal_vector = torch.cross(v1, v2, dim=1)
+        normal_vector = normal_vector / torch.norm(normal_vector, dim=1, keepdim=True)  # Normalize the normal vector
+        v1 = v1 / torch.norm(v1, dim=1, keepdim=True)
+        v2 = v2 - torch.sum(v2 * v1, dim=1, keepdim=True) * v1  # Make v2 orthogonal to v1
+        v2 = v2 / torch.norm(v2, dim=1, keepdim=True)
+        R = torch.stack([v1, v2, normal_vector], dim=1)  # Shape: (b, 3, 3)
+        transformed_points = torch.bmm(x, R.transpose(1, 2))
+        transformed_points = transformed_points.view(batch_size, -1)
+        if not batch_mode:
+            transformed_points = transformed_points.squeeze(0)  # remove batch dimension if it was added
+        return transformed_points
+                                                   

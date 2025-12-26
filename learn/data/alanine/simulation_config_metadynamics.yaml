@@ -1,0 +1,24 @@
+frequency: 100 
+nsteps: 5000000
+temperature: 300
+timestep: 0.002
+pressure: 1.0
+friction: 1.0
+platform: CUDA
+forcefield: amber14-all.xml
+metadynamics:
+  simulate: True 
+  cv_1: 
+    atom_indices: [4, 6, 8, 14]
+    biasWidth: 0.2
+    periodic: True
+    gridWidth: 100 
+  cv_2:
+    atom_indices: [6, 8, 14, 16]
+    biasWidth: 0.2
+    periodic: True
+    gridWidth: 100
+  height: 1.2
+  biasFactor: 6.0 
+  frequency: 100
+  saveFrequency: 1000

@@ -1,0 +1,8 @@
+frequency: 100 
+nsteps: 5000000
+temperature: 300
+timestep: 0.002
+pressure: 1.0
+friction: 1.0
+platform: CUDA
+forcefield: amber14-all.xml
